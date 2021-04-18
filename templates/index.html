@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Codeforces Contests Tracker</title>
+	<style>
+		table, th, td {
+			border: 1px solid black;
+		}
+		a {
+			text-decoration:none;
+			color: black;
+		}
+	</style>
+</head>
+<body>
+	<!-- <h1>Codeforces Contest Tracker</h1> -->
+	<!-- <h2> Username: <span id="display_user"></span></h2> -->
+	<!-- <input type="text" id="username"/> -->
+	<!-- <input type="submit" id="submitUser"> -->
+	<table>
+		{% for contest in contests %}
+			<tr>
+				<td> <a href="https://codeforces.com/contest/{{contest[1]}}" target="_blank">{{contest[0]}}</a></td>
+			{% for k, v in contest[2].items() %}
+				{% if v == 'SC' %}
+				<td bgcolor='green'><a href="https://codeforces.com/contest/{{contest[1]}}/problem/{{k}}" target="_blank">{{k}}<span>&#10004;</span></td>
+				{% elif v == 'SP'%}
+				<td bgcolor='green'><a href="https://codeforces.com/contest/{{contest[1]}}/problem/{{k}}" target="_blank">{{k}}</td>
+				{% elif v == 'WA' %}
+				<td bgcolor='red'><a href="https://codeforces.com/contest/{{contest[1]}}/problem/{{k}}" target="_blank">{{k}}</td>
+				{% else %}
+					<td><a href="https://codeforces.com/contest/{{contest[1]}}/problem/{{k}}" target="_blank">{{k}}</td>
+				{% endif %}
+			{% endfor %}
+			</tr>
+		{% endfor %}
+	</table>
+
+</body>
+</html>
