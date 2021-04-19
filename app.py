@@ -1,3 +1,4 @@
+from collections import defaultdict
 import operator
 import requests
 import string
@@ -18,33 +19,42 @@ def index():
     contests.sort(key=lambda x: x.start_time_seconds, reverse=True)
     # contests = [1, 2, 3]
     url = 'https://codeforces.com/contest/'
+    user_submissions = cf.user_status(username)
+    # grab all the user submissions, loop through them and store them as a map
+    u_d = dict()
+
+    for sub in user_submissions:
+        p_type = sub.author.participant_type
+        key = str(sub.contest_id) + sub.problem.index
+        if key not in u_d:
+            if sub.verdict == 'OK' and p_type == 'CONTESTANT':
+                u_d[key] = 'SC'
+            elif sub.verdict == 'OK':
+                u_d[key] = 'SP'
+            else:
+                u_d[key] = 'WA'
+        else:
+            if u_d[key] == 'SP' and p_type == 'CONTESTANT' and sub.verdict == 'OK':
+                u_d[key] = 'SC'
+    print(len(u_d))
+
+    problems = cf.problemset_problems()['problems']
+    contest_size = defaultdict(int)
+
+    for problem in problems:
+        contest_size[problem.contest_id] += 1
+
     response = []
     for idx, contest in enumerate(contests):
-        submissions = cf.contest_status(contest.id, username)
-        res = requests.get(url + str(contest.id))
-        soup = bs.BeautifulSoup(res.text, 'html.parser')
-        no_of_problems = len(soup.find('table', {'class': 'problems'}).find_all('tr')) - 1
         r = [contest.name, contest.id]
         d = {}
+        no_of_problems = contest_size[contest.id]
         for c in string.ascii_uppercase[:no_of_problems]:
-            d[c] = ''
-        print(len(submissions))
-        for sub in submissions:
-            idx = sub.problem.index
-            p_type = sub.author.participant_type
-            if d[idx] == 'SC': continue
-            elif d[idx] == 'SP' and p_type == 'CONTESTANT' and sub.verdict == 'OK':
-                d[idx] = 'SC'
-            elif d[idx] == 'WA' or d[idx] == '':
-                if sub.verdict == 'OK':
-                    if p_type == 'CONTESTANT':
-                        d[idx] = 'SC'
-                    else:
-                        d[idx] = 'SP'
-                else:
-                    d[idx] = 'WA'
+            key = str(contest.id) + c
+            if key in u_d:
+                d[c] = u_d[key]
+            else:
+                d[c] = ''
         r.append(d)
         response.append(r)
-        if idx == 10:
-            break
     return render_template('index.html', contests=response)
